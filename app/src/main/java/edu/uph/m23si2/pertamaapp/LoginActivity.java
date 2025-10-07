@@ -8,6 +8,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.Toast;
 
@@ -53,6 +54,10 @@ public class LoginActivity extends AppCompatActivity {
     List<String> namaKabupaten = new ArrayList<>();
     ArrayAdapter<String> kabupatenAdapter;
 
+    ListView listKabupaten;
+    ArrayAdapter<String> listAdapter;
+
+
     ApiService apiService;
 
     @Override
@@ -95,6 +100,12 @@ public class LoginActivity extends AppCompatActivity {
         kabupatenAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, namaKabupaten);
         kabupatenAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         sprKabupaten.setAdapter(kabupatenAdapter);
+
+        // ListView untuk menampilkan 10 kabupaten pertama
+        listKabupaten = findViewById(R.id.listKabupaten);
+        listAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, new ArrayList<>());
+        listKabupaten.setAdapter(listAdapter);
+
 
         // Retrofit init
         Retrofit retrofit = new Retrofit.Builder()
@@ -149,14 +160,25 @@ public class LoginActivity extends AppCompatActivity {
                 if (response.isSuccessful() && response.body() != null) {
                     kabupatenList = response.body().getData();
                     namaKabupaten.clear();
+
                     for (Kabupaten k : kabupatenList) {
                         if (k.getName() != null) {
                             namaKabupaten.add(k.getName());
                         }
                     }
                     kabupatenAdapter.notifyDataSetChanged();
+
+                    // --- tampilkan 10 kabupaten pertama di ListView ---
+                    List<String> firstTen = new ArrayList<>();
+                    for (int i = 0; i < Math.min(10, namaKabupaten.size()); i++) {
+                        firstTen.add(namaKabupaten.get(i));
+                    }
+                    listAdapter.clear();
+                    listAdapter.addAll(firstTen);
+                    listAdapter.notifyDataSetChanged();
                 }
             }
+
 
             @Override
             public void onFailure(Call<ApiResponseKabupaten> call, Throwable t) {
@@ -228,7 +250,7 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     public void toDashboard() {
-        Intent intent = new Intent(this, DashboardActivity.class);
+        Intent intent = new Intent(this, AddPasienActivity.class);
         startActivity(intent);
     }
 }
